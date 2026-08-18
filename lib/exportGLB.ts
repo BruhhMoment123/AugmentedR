@@ -5,6 +5,7 @@ import {
   Color,
   DoubleSide,
   InstancedMesh,
+  Light,
   Material,
   Matrix4,
   Mesh,
@@ -99,8 +100,14 @@ function buildExportClone(source: Scene | Object3D): Object3D {
   const toRemove: Object3D[] = [];
   const toExpand: { instanced: InstancedMesh; parent: Object3D }[] = [];
 
-  // Pass 1: Identify non-cell objects to remove, and InstancedMesh objects to expand
+  // Pass 1: Identify non-cell objects to remove (lights, particles, sprites, lines) and InstancedMesh to expand
   clone.traverse((obj) => {
+    // Drop scene lighting (GLTFExporter turns lights into KHR_lights_punctual extension)
+    if (obj instanceof Light) {
+      toRemove.push(obj);
+      return;
+    }
+
     // Drop particle clouds and glowing selection sprites
     if (obj instanceof Points || obj instanceof Sprite) {
       toRemove.push(obj);
@@ -133,7 +140,8 @@ function buildExportClone(source: Scene | Object3D): Object3D {
     }
   }
 
-  // Pass 2: Clean up materials and geometry attributes on remaining meshes
+  // Pass 2: Convert ALL materials (ShaderMaterial, MeshPhysicalMaterial, etc.) to pure MeshStandardMaterial
+  // with zero extensions (no clearcoat, bumpMap, or custom shaders).
   clone.traverse((obj) => {
     if (!(obj instanceof Mesh)) return;
 
@@ -142,33 +150,26 @@ function buildExportClone(source: Scene | Object3D): Object3D {
       cleanGeometryAttributes(obj.geometry);
     }
 
-    // Strip clipping planes — glTF has no support for them
-    if (obj.material) {
-      const stripClip = (mat: Material) => {
-        if ('clippingPlanes' in mat) {
-          (mat as Material & { clippingPlanes: null }).clippingPlanes = null;
-        }
-      };
-      if (Array.isArray(obj.material)) obj.material.forEach(stripClip);
-      else stripClip(obj.material);
-    }
-
     const replaceMaterial = (original: Material): Material => {
-      if (!(original instanceof ShaderMaterial)) return original;
+      let color = '#b0a080';
+      let opacity = original.opacity ?? 1;
 
-      const color = pickColorFromShader(original);
-      const std = new MeshStandardMaterial({
+      if (original instanceof ShaderMaterial) {
+        color = pickColorFromShader(original);
+        const uOp = original.uniforms?.uAlpha?.value ?? original.uniforms?.uOpacity?.value;
+        if (typeof uOp === 'number') opacity = uOp;
+      } else if ('color' in original && (original as { color: unknown }).color instanceof Color) {
+        color = '#' + (original as { color: Color }).color.getHexString();
+      }
+
+      return new MeshStandardMaterial({
         color,
         roughness: 0.55,
         metalness: 0.05,
         transparent: original.transparent,
-        opacity: Math.max(
-          original.uniforms?.uAlpha?.value ?? original.uniforms?.uOpacity?.value ?? 1,
-          0.25, // keep semi-transparent parts visible in AR
-        ),
+        opacity: Math.max(opacity, 0.25), // keep semi-transparent parts visible in AR
         side: original.side ?? DoubleSide,
       });
-      return std;
     };
 
     if (Array.isArray(obj.material)) {
@@ -179,6 +180,7 @@ function buildExportClone(source: Scene | Object3D): Object3D {
       obj.material = replaceMaterial(obj.material);
     }
   });
+
 
   // Expand each InstancedMesh into individual Mesh objects
   const dummy = new Object3D();
