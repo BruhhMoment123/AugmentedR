@@ -1,0 +1,535 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-nunito: 'Nunito', system-ui, sans-serif;
+
+  /* ── Palette ── */
+  --color-app-bg:       #131318;
+  --color-app-surface:  #1c1c24;
+  --color-app-card:     #222230;
+  --color-app-border:   rgba(255,255,255,0.07);
+
+  /* ── Duolingo-inspired brand colors ── */
+  --duo-green:   #58cc02;
+  --duo-blue:    #1cb0f6;
+  --duo-purple:  #ce82ff;
+  --duo-yellow:  #ffc800;
+  --duo-red:     #ff4b4b;
+  --duo-orange:  #ff9600;
+  --duo-teal:    #00cd9c;
+
+  /* ── Shadowed versions (bottom edge gives depth) ── */
+  --duo-green-shadow:  #46a302;
+  --duo-blue-shadow:   #0a8fc4;
+  --duo-purple-shadow: #a854f7;
+  --duo-yellow-shadow: #e6a700;
+  --duo-red-shadow:    #d63030;
+}
+
+/* ── Keyframes ── */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-8px); }
+}
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50%       { transform: translateY(-12px) rotate(4deg); }
+}
+@keyframes pulse-soft {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50%       { opacity: 1;   transform: scale(1.05); }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes bounceIn {
+  0%   { opacity: 0; transform: scale(0.7); }
+  60%  { opacity: 1; transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+@keyframes pulseRing {
+  0%   { box-shadow: 0 0 0 0px rgba(88,204,2,0.5); }
+  70%  { box-shadow: 0 0 0 14px rgba(88,204,2,0); }
+  100% { box-shadow: 0 0 0 0px rgba(88,204,2,0); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+@keyframes popIn {
+  0%   { transform: scale(0.85); opacity: 0; }
+  60%  { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+/* ── Utility animation classes ── */
+.animate-float      { animation: float 3s ease-in-out infinite; }
+.animate-float-slow { animation: floatSlow 4s ease-in-out infinite; }
+.animate-pulse-soft { animation: pulse-soft 2.5s ease-in-out infinite; }
+.animate-slide-up   { animation: slideUp 0.45s cubic-bezier(0.16,1,0.3,1) both; }
+.animate-fade-in    { animation: fadeIn 0.35s ease both; }
+.animate-bounce-in  { animation: bounceIn 0.5s cubic-bezier(0.16,1,0.3,1) both; }
+
+/* ── App shell base ── */
+.app-screen {
+  min-height: 100dvh;
+  background: var(--color-app-bg);
+  font-family: var(--font-nunito);
+  color: #fff;
+  overflow-x: hidden;
+}
+
+/* ── Card ── */
+.kid-card {
+  background: var(--color-app-card);
+  border-radius: 20px;
+  border: 1px solid var(--color-app-border);
+  border-bottom: 3px solid rgba(0,0,0,0.4);
+  box-shadow: 0 4px 0 rgba(0,0,0,0.3);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.kid-card:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.3); }
+
+/* ── Duolingo-style 3D button ── */
+.duo-btn {
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px; padding: 15px 24px; border-radius: 16px; border: none;
+  font-family: var(--font-nunito); font-size: 16px; font-weight: 800;
+  cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  position: relative;
+}
+.duo-btn:hover  { transform: translateY(-2px); }
+.duo-btn:active { transform: translateY(3px); box-shadow: none !important; }
+.duo-btn--green  { background: var(--duo-green);  color: #fff; box-shadow: 0 4px 0 var(--duo-green-shadow);  }
+.duo-btn--blue   { background: var(--duo-blue);   color: #fff; box-shadow: 0 4px 0 var(--duo-blue-shadow);   }
+.duo-btn--purple { background: var(--duo-purple); color: #fff; box-shadow: 0 4px 0 var(--duo-purple-shadow); }
+.duo-btn--ghost  { background: transparent; color: rgba(255,255,255,0.6); border: 2.5px solid rgba(255,255,255,0.15); box-shadow: 0 4px 0 rgba(0,0,0,0.2); }
+
+/* ── Section banner (like Duolingo's unit header) ── */
+.section-banner {
+  border-radius: 20px;
+  padding: 14px 18px;
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+  border-bottom: 4px solid rgba(0,0,0,0.25);
+}
+
+/* ── Lesson path circle ── */
+.path-circle {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 30px;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1);
+  border-bottom: 5px solid rgba(0,0,0,0.3);
+}
+.path-circle:hover  { transform: scale(1.08); }
+.path-circle:active { transform: scale(0.94) translateY(4px); border-bottom-width: 1px; }
+
+.path-circle--completed {
+  background: var(--duo-green);
+  border-color: var(--duo-green-shadow);
+  box-shadow: 0 6px 0 var(--duo-green-shadow);
+}
+.path-circle--current {
+  background: var(--duo-blue);
+  border-color: var(--duo-blue-shadow);
+  box-shadow: 0 6px 0 var(--duo-blue-shadow);
+  animation: pulseRing 2s ease-out infinite;
+}
+.path-circle--locked {
+  background: #2a2a3a;
+  border-color: #1a1a28;
+  box-shadow: 0 6px 0 #1a1a28;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+.path-circle--ar {
+  background: var(--duo-purple);
+  border-color: var(--duo-purple-shadow);
+  box-shadow: 0 6px 0 var(--duo-purple-shadow);
+}
+
+/* ── Path connector line ── */
+.path-connector {
+  width: 3px;
+  height: 28px;
+  border-radius: 999px;
+  margin: 0 auto;
+}
+
+/* ── Top stats bar ── */
+.top-stats-bar {
+  display: flex; align-items: center; gap: 4px;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  background: var(--color-app-bg);
+  position: sticky; top: 0; z-index: 50;
+}
+.stat-pill {
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 10px; border-radius: 999px;
+  font-weight: 800; font-size: 14px;
+  font-family: var(--font-nunito);
+}
+
+/* ── Colorful pill tag ── */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* ── Progress bar ── */
+.progress-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.1);
+  overflow: hidden;
+}
+.progress-bar__fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.6s cubic-bezier(0.16,1,0.3,1);
+}
+
+/* ── Duolingo-style solid bottom nav ── */
+.bottom-nav {
+  position: sticky;
+  bottom: 0;
+  left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  padding: 8px 4px 16px;
+  background: var(--color-app-surface);
+  border-top: 2px solid rgba(255,255,255,0.07);
+}
+
+.bottom-nav__item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 4px;
+  border-radius: 14px;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1);
+  color: rgba(255,255,255,0.35);
+  font-family: var(--font-nunito);
+}
+.bottom-nav__item:active { transform: scale(0.9); }
+
+.bottom-nav__icon-wrap {
+  width: 44px; height: 40px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  transition: background 0.2s ease, transform 0.15s cubic-bezier(0.34,1.56,0.64,1);
+  background: transparent;
+}
+.bottom-nav__item.active .bottom-nav__icon-wrap {
+  transform: scale(1.1);
+}
+.bottom-nav__item.active {
+  color: #fff;
+}
+
+/* Per-tab active colors */
+.bottom-nav__item[data-tab="dashboard"].active  .bottom-nav__icon-wrap { background: #1cb0f620; }
+.bottom-nav__item[data-tab="courses"].active    .bottom-nav__icon-wrap { background: #58cc0220; }
+.bottom-nav__item[data-tab="leaderboard"].active .bottom-nav__icon-wrap { background: #ffc80020; }
+.bottom-nav__item[data-tab="calendar"].active   .bottom-nav__icon-wrap { background: #ce82ff20; }
+.bottom-nav__item[data-tab="profile"].active    .bottom-nav__icon-wrap { background: #ff960020; }
+
+.bottom-nav__item[data-tab="dashboard"].active  { color: #1cb0f6; }
+.bottom-nav__item[data-tab="courses"].active    { color: #58cc02; }
+.bottom-nav__item[data-tab="leaderboard"].active { color: #ffc800; }
+.bottom-nav__item[data-tab="calendar"].active   { color: #ce82ff; }
+.bottom-nav__item[data-tab="profile"].active    { color: #ff9600; }
+
+.bottom-nav__label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+/* ── Auth page decorative blobs ── */
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.18;
+  pointer-events: none;
+}
+
+/* ── Input field ── */
+.kid-input {
+  width: 100%;
+  padding: 14px 18px;
+  background: rgba(255,255,255,0.06);
+  border: 1.5px solid rgba(255,255,255,0.1);
+  border-radius: 14px;
+  color: #fff;
+  font-family: var(--font-nunito);
+  font-size: 15px;
+  font-weight: 500;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.kid-input::placeholder {
+  color: rgba(255,255,255,0.3);
+}
+.kid-input:focus {
+  border-color: rgba(28, 176, 246, 0.7);
+  box-shadow: 0 0 0 3px rgba(28,176,246,0.15);
+}
+
+/* ── Auth buttons (Duolingo 3D style) ── */
+.kid-btn {
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px; width: 100%; padding: 15px 24px;
+  border-radius: 16px; border: none;
+  font-family: var(--font-nunito); font-size: 16px; font-weight: 800;
+  cursor: pointer; text-transform: uppercase; letter-spacing: 0.04em;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+.kid-btn:hover  { transform: translateY(-2px); }
+.kid-btn:active { transform: translateY(3px); box-shadow: none !important; }
+.kid-btn--green {
+  background: var(--duo-green);
+  color: #fff;
+  box-shadow: 0 4px 0 var(--duo-green-shadow);
+}
+.kid-btn--purple {
+  background: var(--duo-purple);
+  color: #fff;
+  box-shadow: 0 4px 0 var(--duo-purple-shadow);
+}
+.kid-btn--ghost {
+  background: transparent;
+  color: rgba(255,255,255,0.6);
+  border: 2.5px solid rgba(255,255,255,0.15);
+  box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Base                                                                */
+/* ------------------------------------------------------------------ */
+
+html,
+body {
+  background: #131318;
+  color: #fff;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  overscroll-behavior: none;
+}
+
+canvas {
+  touch-action: none;
+}
+
+/* Slim, unobtrusive scrollbars for the info panel / filter list */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+/* ------------------------------------------------------------------ */
+/* Glassmorphism primitives                                            */
+/* ------------------------------------------------------------------ */
+
+.glass-panel {
+  background: linear-gradient(160deg, rgba(16, 24, 44, 0.72), rgba(8, 12, 24, 0.62));
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  border: 1px solid rgba(148, 178, 255, 0.13);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.glass-chip {
+  background: rgba(10, 16, 30, 0.72);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid rgba(148, 178, 255, 0.16);
+  border-radius: 999px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+}
+
+/* ------------------------------------------------------------------ */
+/* 3D annotation labels (rendered through drei <Html/>)                */
+/* ------------------------------------------------------------------ */
+
+.cell-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: rgba(8, 12, 24, 0.66);
+  backdrop-filter: blur(10px) saturate(140%);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
+  border: 1px solid color-mix(in srgb, var(--label-color, #8fd3e8) 40%, transparent);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+  opacity: 0.92;
+  transform: translateZ(0) scale(1);
+  transition:
+    opacity 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.18s ease,
+    background 0.18s ease;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.cell-label:hover {
+  opacity: 1;
+  transform: translateZ(0) scale(1.06);
+  background: rgba(14, 22, 40, 0.85);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--label-color, #8fd3e8) 60%, transparent),
+    0 8px 28px rgba(0, 0, 0, 0.55),
+    0 0 18px color-mix(in srgb, var(--label-color, #8fd3e8) 30%, transparent);
+}
+
+.cell-label:focus-visible {
+  outline: 2px solid var(--label-color, #8fd3e8);
+  outline-offset: 2px;
+}
+
+.cell-label:active {
+  transform: translateZ(0) scale(0.98);
+}
+
+.cell-label--active {
+  opacity: 1;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--label-color, #8fd3e8) 55%, transparent),
+    0 6px 28px rgba(0, 0, 0, 0.5),
+    0 0 22px color-mix(in srgb, var(--label-color, #8fd3e8) 35%, transparent);
+}
+
+.cell-label__dot {
+  margin-top: 4px;
+  height: 7px;
+  width: 7px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: var(--label-color, #8fd3e8);
+  box-shadow: 0 0 8px var(--label-color, #8fd3e8);
+}
+
+.cell-label__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.cell-label__name {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.94);
+}
+
+.cell-label__sci {
+  font-size: 9px;
+  font-style: italic;
+  color: color-mix(in srgb, var(--label-color, #8fd3e8) 75%, white);
+  opacity: 0.75;
+}
+
+.cell-label__tag {
+  margin-top: 2px;
+  font-size: 9.5px;
+  color: rgba(255, 255, 255, 0.5);
+  max-width: 210px;
+  white-space: normal;
+  line-height: 1.35;
+}
+
+/* ------------------------------------------------------------------ */
+/* Range slider (slice control)                                        */
+/* ------------------------------------------------------------------ */
+
+.cell-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, rgba(103, 232, 249, 0.5), rgba(167, 139, 250, 0.5));
+  outline: none;
+  cursor: pointer;
+}
+
+.cell-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 16px;
+  width: 16px;
+  border-radius: 999px;
+  background: #e8f6ff;
+  border: 2px solid rgba(103, 232, 249, 0.8);
+  box-shadow: 0 0 12px rgba(103, 232, 249, 0.55);
+  transition: transform 0.15s ease;
+}
+
+.cell-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+.cell-slider::-moz-range-thumb {
+  height: 16px;
+  width: 16px;
+  border-radius: 999px;
+  background: #e8f6ff;
+  border: 2px solid rgba(103, 232, 249, 0.8);
+  box-shadow: 0 0 12px rgba(103, 232, 249, 0.55);
+}
+
+/* ------------------------------------------------------------------ */
+/* Leva overrides — blend the debug panel into the exhibit theme       */
+/* ------------------------------------------------------------------ */
+
+div[class*='leva-'][class*='root'] {
+  --leva-colors-elevation1: rgba(10, 16, 30, 0.9);
+  --leva-colors-elevation2: rgba(16, 24, 44, 0.9);
+  --leva-colors-elevation3: rgba(30, 42, 70, 0.9);
+  --leva-colors-accent1: #67e8f9;
+  --leva-colors-accent2: #38bdf8;
+  --leva-colors-accent3: #a78bfa;
+  --leva-fonts-mono: var(--font-geist-mono), monospace;
+}
