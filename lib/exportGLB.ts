@@ -17,6 +17,7 @@ import {
   Scene,
 } from 'three';
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 /**
  * Color map: each shader material name → its dominant biological colour.
@@ -182,35 +183,53 @@ function buildExportClone(source: Scene | Object3D): Object3D {
   });
 
 
-  // Expand each InstancedMesh into individual Mesh objects
+  // Merge each InstancedMesh population into a SINGLE Mesh object to drastically reduce draw calls and nodes
   const dummy = new Object3D();
+  const matrixWorld = new Matrix4();
+
   for (const { instanced, parent } of toExpand) {
     const mat = Array.isArray(instanced.material)
       ? instanced.material[0]
       : instanced.material;
 
-    const cleanGeo = instanced.geometry.clone();
-    cleanGeometryAttributes(cleanGeo);
+    const baseGeo = instanced.geometry.clone();
+    cleanGeometryAttributes(baseGeo);
 
+    const instanceGeos: BufferGeometry[] = [];
     for (let i = 0; i < instanced.count; i++) {
       instanced.getMatrixAt(i, dummy.matrix);
-      dummy.matrix.decompose(dummy.position, dummy.quaternion, dummy.scale);
+      // Combine instance transform with parent world matrix
+      matrixWorld.copy(instanced.matrixWorld).multiply(dummy.matrix);
 
-      const mesh = new Mesh(cleanGeo, mat);
-      mesh.position.copy(dummy.position);
-      mesh.quaternion.copy(dummy.quaternion);
-      mesh.scale.copy(dummy.scale);
-      // inherit parent world transform
-      mesh.applyMatrix4(instanced.matrixWorld);
-      parent.add(mesh);
+      const transformedGeo = baseGeo.clone();
+      transformedGeo.applyMatrix4(matrixWorld);
+      instanceGeos.push(transformedGeo);
     }
+
+    const mergedGeo = mergeGeometries(instanceGeos, false);
+    if (mergedGeo) {
+      const mergedMesh = new Mesh(mergedGeo, mat);
+      parent.add(mergedMesh);
+    }
+
+    // Clean up temporary geometries
+    baseGeo.dispose();
+    instanceGeos.forEach((g) => g.dispose());
 
     // Remove the original InstancedMesh from the clone
     parent.remove(instanced);
   }
 
-  return clone;
+  // Wrap and scale the entire cell down to ~0.7 meters (70 cm tabletop AR scale)
+  // Google Scene Viewer requires AR models to be under 2.5 meters in size.
+  const wrapper = new Object3D();
+  wrapper.add(clone);
+  wrapper.scale.setScalar(0.07);
+  wrapper.updateMatrixWorld(true);
+
+  return wrapper;
 }
+
 
 
 
